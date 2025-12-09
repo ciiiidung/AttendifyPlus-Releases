@@ -9,51 +9,65 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class AdvisoryDetailsViewModel(
-    private val repository: TeacherRepository,
-    private val teacherId: String = "T001" // Default to Demo Teacher
+    private val teacherRepo: TeacherRepository,
+    private val teacherId: String = "T001" // TODO: Get from Session
 ) : ViewModel() {
 
     private val _teacher = MutableStateFlow<TeacherEntity?>(null)
     val teacher: StateFlow<TeacherEntity?> = _teacher
 
     init {
-        loadTeacher()
-    }
-
-    private fun loadTeacher() {
         viewModelScope.launch {
-            _teacher.value = repository.getById(teacherId)
+            teacherRepo.getByIdFlow(teacherId).collect { 
+                _teacher.value = it
+            }
         }
     }
 
     fun saveDetails(grade: String, section: String, startTime: String?) {
+        val currentTeacher = _teacher.value
+        
+        val updatedTeacher = if (currentTeacher != null) {
+            currentTeacher.copy(
+                advisoryGrade = grade,
+                advisorySection = section,
+                advisoryStartTime = startTime,
+                role = "adviser" // Always set to adviser when they have advisory class
+            )
+        } else {
+            // This case should ideally not happen if the UI is driven by an existing teacher.
+            // But as a fallback, create a new entity. This needs more details for a real user.
+            TeacherEntity(
+                id = teacherId,
+                username = "new.teacher",
+                password = "123456", // Default password
+                firstName = "New",
+                lastName = "Teacher",
+                email = null,
+                role = "adviser",
+                advisoryGrade = grade,
+                advisorySection = section,
+                advisoryStartTime = startTime
+            )
+        }
+        
         viewModelScope.launch {
-            val current = repository.getById(teacherId)
-            if (current == null) {
-                // Insert default teacher if missing (Demo mode fix)
-                val newTeacher = TeacherEntity(
-                    id = teacherId,
-                    username = "teacher",
-                    firstName = "John",
-                    lastName = "Doe",
-                    email = "teacher@demo.com",
-                    role = "adviser",
-                    advisoryGrade = grade,
-                    advisorySection = section,
-                    advisoryStartTime = startTime
-                )
-                repository.insert(newTeacher)
-            } else {
-                repository.updateAdvisoryDetails(teacherId, grade, section, startTime)
-            }
-            loadTeacher() 
+            teacherRepo.insert(updatedTeacher)
         }
     }
 
     fun deleteClass() {
-        viewModelScope.launch {
-            repository.updateAdvisoryDetails(teacherId, null, null, null)
-            loadTeacher()
+        _teacher.value?.let {
+            val updated = it.copy(
+                advisoryGrade = null,
+                advisorySection = null,
+                advisoryStartTime = null,
+                // Revert role to subject teacher if they no longer advise a class
+                role = "subject" 
+            )
+            viewModelScope.launch {
+                teacherRepo.insert(updated)
+            }
         }
     }
 }

@@ -1,27 +1,25 @@
 package com.attendifyplus.data.local.entities
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "teachers")
+@Entity(
+    tableName = "teachers",
+    indices = [Index(value = ["username"], unique = true)]
+)
 data class TeacherEntity(
-    @PrimaryKey val id: String, // Unique Teacher Code
+    @PrimaryKey val id: String,
     val username: String,
-    val password: String = "123456", // Default password for migration/testing
+    val password: String,
     val firstName: String,
     val lastName: String,
-    val email: String,
-    val role: String = "subject", // "adviser" or "subject"
-    
-    // Classification
-    val department: String = "JHS", // "JHS" (Junior High) or "SHS" (Senior High)
-    
-    // New fields for Advisory Class details
-    val advisoryGrade: String? = null,
-    val advisorySection: String? = null,
-    val advisoryStartTime: String? = null, // Format "HH:mm" (24-hour)
-    val advisoryTrack: String? = null, // Added for SHS Strand/Track
-    
-    // Credentials Management
-    val hasChangedCredentials: Boolean = false
+    val email: String?,
+    var role: String, // admin, teacher, student
+    var department: String? = null, // JHS or SHS, only for advisers
+    var advisoryGrade: String? = null,
+    var advisorySection: String? = null,
+    var advisoryStartTime: String? = null,
+    var advisoryTrack: String? = null,
+    var hasChangedCredentials: Boolean = false
 )

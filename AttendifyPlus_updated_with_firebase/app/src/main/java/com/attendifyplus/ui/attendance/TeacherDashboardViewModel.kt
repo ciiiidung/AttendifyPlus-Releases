@@ -102,9 +102,11 @@ class TeacherDashboardViewModel(
             teacherRepo.getByIdFlow(teacherId).collect { teacher ->
                 _adviserDetails.value = teacher
                 _userName.value = teacher?.firstName ?: "Teacher"
-                if (teacher?.advisoryGrade != null && teacher.advisorySection != null) {
+                val grade = teacher?.advisoryGrade
+                val section = teacher?.advisorySection
+                if (grade != null && section != null) {
                     _studentCount.value =
-                        studentRepo.countByClass(teacher.advisoryGrade, teacher.advisorySection)
+                        studentRepo.countByClass(grade, section)
                 } else {
                     _studentCount.value = 0
                 }

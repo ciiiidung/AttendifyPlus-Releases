@@ -50,14 +50,13 @@ fun TeacherListScreen(
     
     val sortedTeachers = remember(teachers, sortOption, selectedTab) {
         val filtered = when(selectedTab) {
-             "JHS" -> teachers.filter { it.department == "JHS" }
-             "SHS" -> teachers.filter { it.department == "SHS" }
+             "Advisers" -> teachers.filter { it.role == "adviser" }
+             "Subject" -> teachers.filter { it.role == "subject" }
              else -> teachers
         }
 
         when (sortOption) {
             "Name" -> filtered.sortedBy { it.firstName }
-            "Department" -> filtered.sortedBy { it.department }
             "Role" -> filtered.sortedBy { it.role }
             else -> filtered
         }
@@ -157,7 +156,7 @@ fun TeacherListScreen(
                             expanded = isSortMenuExpanded,
                             onDismissRequest = { isSortMenuExpanded = false }
                         ) {
-                            listOf("Name", "Department", "Role").forEach { option ->
+                            listOf("Name", "Role").forEach { option ->
                                 DropdownMenuItem(onClick = {
                                     sortOption = option
                                     isSortMenuExpanded = false
@@ -175,8 +174,8 @@ fun TeacherListScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     TeacherTab(title = "All", selected = selectedTab == "All") { selectedTab = "All" }
-                    TeacherTab(title = "JHS", selected = selectedTab == "JHS") { selectedTab = "JHS" }
-                    TeacherTab(title = "SHS", selected = selectedTab == "SHS") { selectedTab = "SHS" }
+                    TeacherTab(title = "Advisers", selected = selectedTab == "Advisers") { selectedTab = "Advisers" }
+                    TeacherTab(title = "Subject", selected = selectedTab == "Subject") { selectedTab = "Subject" }
                 }
 
 
@@ -281,7 +280,7 @@ fun TeacherCard(
         ) {
             Surface(
                 shape = androidx.compose.foundation.shape.CircleShape,
-                color = if (teacher.department == "SHS") Color(0xFFFF9F43).copy(alpha = 0.1f) else PrimaryBlue.copy(alpha = 0.1f),
+                color = PrimaryBlue.copy(alpha = 0.1f),
                 modifier = Modifier.size(48.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -289,7 +288,7 @@ fun TeacherCard(
                         text = teacher.firstName.take(1).uppercase(),
                         style = MaterialTheme.typography.h6.copy(
                             fontWeight = FontWeight.Bold,
-                            color = if (teacher.department == "SHS") Color(0xFFFF9F43) else PrimaryBlue
+                            color = PrimaryBlue
                         )
                     )
                 }
@@ -298,29 +297,10 @@ fun TeacherCard(
             Spacer(Modifier.width(16.dp))
             
             Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "${teacher.firstName} ${teacher.lastName}",
-                        style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colors.onSurface)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    // Badge for JHS/SHS
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = if (teacher.department == "SHS") Color(0xFFFF9F43).copy(alpha = 0.2f) else PrimaryBlue.copy(alpha = 0.1f),
-                        modifier = Modifier.padding(start = 4.dp)
-                    ) {
-                        Text(
-                            text = teacher.department,
-                            style = MaterialTheme.typography.caption.copy(
-                                fontSize = 10.sp, 
-                                fontWeight = FontWeight.Bold,
-                                color = if (teacher.department == "SHS") Color(0xFFE58E26) else PrimaryBlue
-                            ),
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                        )
-                    }
-                }
+                Text(
+                    text = "${teacher.firstName} ${teacher.lastName}",
+                    style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colors.onSurface)
+                )
                 
                 Text(
                     text = "User: ${teacher.username} | Role: ${teacher.role.replaceFirstChar { it.uppercase() }}",
@@ -504,15 +484,6 @@ fun AddEditTeacherSheet(
         Divider(color = Color.LightGray.copy(alpha = 0.3f))
         Spacer(Modifier.height(16.dp))
         
-        Text("Department Classification", style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colors.onSurface))
-        Spacer(Modifier.height(8.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            DepartmentOption("JHS (Gr. 7-10)", department == "JHS") { department = "JHS" }
-            DepartmentOption("SHS (Gr. 11-12)", department == "SHS") { department = "SHS" }
-        }
-
-        Spacer(Modifier.height(24.dp))
-        
         Text("Role Assignment", style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colors.onSurface))
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -530,11 +501,25 @@ fun AddEditTeacherSheet(
             )
             Text("Adviser", modifier = Modifier.clickable { role = "adviser" }, color = MaterialTheme.colors.onSurface)
         }
-
+        
+        // Conditionally show department and advisory details for Advisers
         if (role == "adviser") {
             Spacer(Modifier.height(24.dp))
+            
             Text("Advisory Class Details", style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colors.onSurface))
+            Spacer(Modifier.height(16.dp))
+            
+            // Department for Advisory Class
+            Text("Department", style = MaterialTheme.typography.caption.copy(fontWeight = FontWeight.SemiBold, color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)))
             Spacer(Modifier.height(8.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                DepartmentOption("JHS (Gr. 7-10)", department == "JHS") { department = "JHS" }
+                DepartmentOption("SHS (Gr. 11-12)", department == "SHS") { department = "SHS" }
+            }
+            
+            Spacer(Modifier.height(16.dp))
+            
+            // Grade and Section
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = advisoryGrade,
@@ -567,7 +552,7 @@ fun AddEditTeacherSheet(
         
         if (isError) {
              val errorMsg = if (role == "adviser" && (advisoryGrade.isBlank() || advisorySection.isBlank())) 
-                "Please fill in Grade and Section for Adviser role." 
+                "Please fill in all Advisory Class details."
             else 
                 "Please fill in all required fields (Username, Name)."
             
@@ -592,7 +577,7 @@ fun AddEditTeacherSheet(
                             lastName = lastName,
                             email = email,
                             role = role,
-                            department = department,
+                            department = if (role == "adviser") department else null, // Set department only for advisers
                             advisoryGrade = if (role == "adviser") advisoryGrade else null,
                             advisorySection = if (role == "adviser") advisorySection else null
                         )

@@ -3,8 +3,8 @@ package com.attendifyplus.ui.attendance
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.attendifyplus.data.local.entities.AttendanceEntity
-import com.attendifyplus.data.local.entities.StudentEntity
 import com.attendifyplus.data.local.entities.SchoolEventEntity
+import com.attendifyplus.data.local.entities.StudentEntity
 import com.attendifyplus.data.local.entities.SubjectClassEntity
 import com.attendifyplus.data.local.entities.TeacherEntity
 import com.attendifyplus.data.repositories.AttendanceRepository
@@ -150,8 +150,10 @@ class DashboardViewModel(
                 teacherRepo.getByIdFlow(teacherId).collect { teacher ->
                     _adviserDetails.value = teacher
                     _userName.value = teacher?.firstName ?: "Teacher"
-                    if (teacher?.advisoryGrade != null && teacher.advisorySection != null) {
-                        _studentCount.value = studentRepo.countByClass(teacher.advisoryGrade, teacher.advisorySection)
+                    val grade = teacher?.advisoryGrade
+                    val section = teacher?.advisorySection
+                    if (grade != null && section != null) {
+                        _studentCount.value = studentRepo.countByClass(grade, section)
                     } else {
                         _studentCount.value = 0
                     }
@@ -247,10 +249,12 @@ class DashboardViewModel(
             if (isNoClass && isToday) {
                 // Get Students (Advisory Class)
                 val adviser = _adviserDetails.value
-                if (adviser?.advisoryGrade != null && adviser.advisorySection != null) {
+                val grade = adviser?.advisoryGrade
+                val section = adviser?.advisorySection
+                if (grade != null && section != null) {
                     try {
                         // Fetch students currently in the advisory class
-                        val students = studentRepo.getByClass(adviser.advisoryGrade, adviser.advisorySection).first()
+                        val students = studentRepo.getByClass(grade, section).first()
                         
                         students.forEach { student ->
                             // Avoid duplicates for the same day/timestamp if possible
@@ -293,9 +297,8 @@ class DashboardViewModel(
             _isRefreshing.value = true
             // Re-trigger loading (though flows stay active, this ensures we have the latest if something stalled)
             loadAdviserDetails() 
-            // The actual sync logic will be handled by the UI invoking WorkManager, 
-            // but we keep the spinner showing for a bit to give feedback.
-            delay(2000) 
+            // The actual sync logic 
+            delay(1000)
             _isRefreshing.value = false
         }
     }

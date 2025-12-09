@@ -200,7 +200,7 @@ fun TeacherDetailScreen(
             username = t.username,
             firstName = t.firstName,
             lastName = t.lastName,
-            email = t.email,
+            email = t.email ?: "",
             onDismiss = { showEditProfile = false },
             onSave = { u, f, l, e ->
                 viewModel.updateProfile(u, f, l, e)

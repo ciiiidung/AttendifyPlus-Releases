@@ -417,7 +417,7 @@ fun TeacherFullWidthCard(teacher: TeacherEntity, onClick: () -> Unit) {
                         color = if (teacher.department == "SHS") Color(0xFFFF9F43).copy(alpha = 0.2f) else PrimaryBlue.copy(alpha = 0.1f),
                     ) {
                         Text(
-                            text = teacher.department,
+                            text = teacher.department ?: "",
                             style = MaterialTheme.typography.caption.copy(
                                 fontSize = 10.sp, 
                                 fontWeight = FontWeight.Bold,
@@ -429,7 +429,7 @@ fun TeacherFullWidthCard(teacher: TeacherEntity, onClick: () -> Unit) {
                 }
                 Spacer(Modifier.height(Dimens.PaddingTiny))
                 Text(
-                    text = teacher.email,
+                    text = teacher.email ?: "",
                     style = MaterialTheme.typography.body2.copy(color = Color.Gray)
                 )
                 if (!teacher.advisoryGrade.isNullOrBlank()) {
