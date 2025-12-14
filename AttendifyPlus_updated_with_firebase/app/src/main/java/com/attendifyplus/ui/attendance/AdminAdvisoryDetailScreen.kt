@@ -38,19 +38,23 @@ fun AdminAdvisoryDetailScreen(
     // Decode URL-encoded section name
     val decodedSection = remember(section) { URLDecoder.decode(section, "UTF-8") }
 
-    val allFilteredStudents by viewModel.filteredStudents.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
+    // Use allStudents directly and filter locally to avoid modifying global VM state
+    val allStudents by viewModel.allStudents.collectAsState()
     val advisoryClasses by viewModel.advisoryClasses.collectAsState()
     
-    // Initialize filter
-    LaunchedEffect(grade) {
-        viewModel.selectGrade(grade)
-        viewModel.selectTrack("All") 
-    }
-
-    // Filter for this specific section
-    val classStudents = remember(allFilteredStudents, decodedSection) {
-        allFilteredStudents.filter { it.section == decodedSection }
+    // Local Search Query
+    var searchQuery by remember { mutableStateOf("") }
+    
+    // Filter for this specific section + Search
+    val classStudents = remember(allStudents, decodedSection, searchQuery) {
+        allStudents.filter { student -> 
+            student.grade == grade && 
+            student.section == decodedSection &&
+            (searchQuery.isBlank() || 
+             student.firstName.contains(searchQuery, ignoreCase = true) || 
+             student.lastName.contains(searchQuery, ignoreCase = true) ||
+             student.id.contains(searchQuery, ignoreCase = true))
+        }
     }
     
     var showAddDialog by remember { mutableStateOf(false) }
@@ -229,7 +233,7 @@ fun AdminAdvisoryDetailScreen(
                         // Search Bar
                         OutlinedTextField(
                             value = searchQuery,
-                            onValueChange = { viewModel.onSearchQueryChange(it) },
+                            onValueChange = { searchQuery = it },
                             placeholder = { Text("Search student...", color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f)) },
                             leadingIcon = { Icon(Icons.Default.Search, null, tint = MaterialTheme.colors.onSurface.copy(alpha = 0.5f)) },
                             modifier = Modifier
@@ -244,7 +248,7 @@ fun AdminAdvisoryDetailScreen(
                             ),
                             singleLine = true,
                             trailingIcon = if (searchQuery.isNotEmpty()) {
-                                { IconButton(onClick = { viewModel.onSearchQueryChange("") }) { Icon(Icons.Default.Clear, null) } }
+                                { IconButton(onClick = { searchQuery = "" }) { Icon(Icons.Default.Clear, null) } }
                             } else null
                         )
 

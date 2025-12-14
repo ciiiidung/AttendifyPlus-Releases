@@ -9,13 +9,13 @@ import androidx.room.PrimaryKey
     indices = [Index(value = ["username"], unique = true)]
 )
 data class TeacherEntity(
-    @PrimaryKey val id: String,
-    val username: String,
-    val password: String,
-    val firstName: String,
-    val lastName: String,
-    val email: String?,
-    var role: String, // admin, teacher, student
+    @PrimaryKey val id: String = "",
+    val username: String = "",
+    val password: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
+    val email: String? = null,
+    var role: String = "teacher", // admin, teacher, student
     var department: String? = null, // JHS or SHS, only for advisers
     var advisoryGrade: String? = null,
     var advisorySection: String? = null,

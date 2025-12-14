@@ -40,13 +40,18 @@ class AttendanceViewModel(
     private val context: Context // Injected context
 ) : ViewModel() {
 
+    private val prefs = context.getSharedPreferences("attendify_session", Context.MODE_PRIVATE)
+    // Fetch the actual logged-in teacher ID. Fallback to T001 only if missing (e.g. dev mode)
+    private val teacherId = prefs.getString("user_id", null) ?: "T001"
+
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message
 
     private val _scanState = MutableStateFlow<ScanState>(ScanState.Idle)
     val scanState: StateFlow<ScanState> = _scanState
 
-    val subjectClasses = subjectClassRepo.getClassesForTeacher("T001")
+    // Now uses the dynamic teacherId
+    val subjectClasses = subjectClassRepo.getClassesForTeacher(teacherId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun resetScanState() {
@@ -326,7 +331,7 @@ class AttendanceViewModel(
 
                 } else {
                     // Existing logic for single subject (Teacher View)
-                    val allSubjects = subjectClassRepo.getClassesForTeacher("T001").first()
+                    val allSubjects = subjectClassRepo.getClassesForTeacher(teacherId).first() // Use teacherId here too
                     val subject = allSubjects.find { it.subjectName == subjectName }
 
                     if (subject == null) {

@@ -50,8 +50,11 @@ class AdminStudentManagementViewModel(
 
     private val prefs = context.getSharedPreferences("school_config", Context.MODE_PRIVATE)
 
+    // Expose raw students for detail screens that do their own filtering
     private val _allStudents = studentRepo.getAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    
+    val allStudents: StateFlow<List<StudentEntity>> = _allStudents
 
     val allTeachers: StateFlow<List<TeacherEntity>> = teacherRepo.getAllFlow()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
