@@ -20,14 +20,12 @@ jobs:
           cache: gradle
 
       - name: Decode Keystore
-        # We write the keystore file directly into the subfolder
         run: |
-          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 --decode > AttendifyPlusFULLFINALV4/AttendifyPlus_updated_with_firebase/app/upload-keystore.jks
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 --decode > AttendifyPlus_updated_with_firebase/app/upload-keystore.jks
 
       - name: Build Release APK
-        # We cd into the folder before running gradlew
         run: |
-          cd AttendifyPlusFULLFINALV4/AttendifyPlus_updated_with_firebase
+          cd AttendifyPlus_updated_with_firebase
           chmod +x gradlew
           ./gradlew assembleRelease
         env:
@@ -38,4 +36,4 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: AttendifyPlusFULLFINALV4/AttendifyPlus_updated_with_firebase/app/build/outputs/apk/release/app-release.apk
+          files: AttendifyPlus_updated_with_firebase/app/build/outputs/apk/release/app-release.apk
